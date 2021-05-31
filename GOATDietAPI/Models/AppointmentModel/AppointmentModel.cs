@@ -11,14 +11,15 @@ namespace GOATDietAPI.Models.AppointmentModel
     {
         [BsonId]
         public ObjectId _Id;
-        public int AppointmentId { get; set; }
-        public int PatientUid { get; set; }
-        public int DieticianUid { get; set; }
-        public DateTime Date { get; set; }
+        public int? AppointmentId { get; set; }
+        public int? PatientUid { get; set; }
+        public int? DieticianUid { get; set; }
+        public DateTime? Date { get; set; }
         public string Type  { get; set; }
         public string Status { get; set; }
         public string DeclineMessage { get; set; }
-        public Payment PaymentInformation { get; set; }
+        public Payment? PaymentInformation { get; set; }
+        
     }
     
     

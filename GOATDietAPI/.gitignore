@@ -1,0 +1,12 @@
+﻿
+# IntelliJ project files
+.idea
+*.iml
+out
+gen
+*.suo
+*.user
+_ReSharper.*
+bin
+obj
+packages
