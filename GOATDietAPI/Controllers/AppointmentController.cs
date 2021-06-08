@@ -38,6 +38,9 @@ namespace GOATDietAPI.Controllers
             var client = new MongoClient(Secrets.DatabaseKey);
             var database = client.GetDatabase("DietDB");
             var collection = database.GetCollection<AppointmentModel>("AppointmentCollection");
+            AppointmentModel lastIdDocument = collection.Find(patient => true).SortByDescending(e => e.AppointmentId).ToList().FirstOrDefault();
+            var newAppointmentAppointmentId = lastIdDocument == null ? 0 : lastIdDocument.AppointmentId;
+            newAppointment.AppointmentId = newAppointmentAppointmentId;
             collection.InsertOneAsync(newAppointment);
             return newAppointment;
         }
@@ -56,6 +59,10 @@ namespace GOATDietAPI.Controllers
             {
                 singleResult.Status = "deleted by dietician";
                 appointmentTrashbinCollection.InsertOneAsync(singleResult);
+            }
+            else
+            {
+                return false;
             }
 
             //delete
@@ -87,6 +94,10 @@ namespace GOATDietAPI.Controllers
             {
                 singleResult.Status = "deleted by patient";
                 appointmentTrashbinCollection.InsertOneAsync(singleResult);
+            }
+            else
+            {
+                return false;
             }
 
             //delete
@@ -157,8 +168,6 @@ namespace GOATDietAPI.Controllers
                 }
                 
             }
-            
-            
             return fieldsToUpdate;
         }
     }

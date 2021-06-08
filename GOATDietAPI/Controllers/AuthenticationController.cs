@@ -51,61 +51,85 @@ namespace GOATDietAPI.Controllers
             return true;
         }
         [HttpPost("CreatePatient")]
-        public PatientModel AddNewPatient(PatientModel newPatient)
+        public string AddNewPatient(PatientModel newPatient)
         {
             var client = new MongoClient(Secrets.DatabaseKey);
             var database = client.GetDatabase("DietDB");
             var collection = database.GetCollection<PatientModel>("PatientCollection");
-            //PatientModel np = new PatientModel()
-            //{
-            //    _Id = ObjectId.GenerateNewId(),
-            //    Uid = 000001,
-            //    Name = "Pedat",
-            //    Surname = "Seker",
-            //    Email = "cincinao@gmail.com",
-            //    PhoneNumber = "50330202011",
-            //    Password = AesOperation.EncryptString(Secrets.SymmetricKeyOAuth, "prolaterya"),
-            //    UserType = "Patient",
-            //    Sex = "no sex",
-            //    Weight = 102.5,
-            //    Height = 190.2,
-            //    Pregnancy = true,
-            //    ThinnestWaist = 14.2,
-            //    TightestNeck = 11.2,
-            //    Age = 12,       };
-
-            PatientModel newPatientModel = new PatientModel()
+            var checkExistance =
+                collection.Find(patient => patient.Email == newPatient.Email || patient.PhoneNumber == newPatient.PhoneNumber).ToList().FirstOrDefault();
+            switch (checkExistance)
             {
-                _Id = ObjectId.GenerateNewId(),
-                Uid = newPatient.Uid,
-                Name = newPatient.Name,
-                Surname = newPatient.Surname,
-                Email = newPatient.Email,
-                PhoneNumber = newPatient.PhoneNumber,
-                Password = AesOperation.EncryptString(Secrets.SymmetricKeyOAuth, newPatient.Password),
-                UserType = "Patient",
-                Sex = newPatient.Sex,
-                Weight = newPatient.Weight,
-                Height = newPatient.Height,
-                Pregnancy = newPatient.Pregnancy,
-                ThinnestWaist = newPatient.ThinnestWaist,
-                TightestNeck = newPatient.TightestNeck,
-                Age = newPatient.Age,
-            };
-
-            collection.InsertOneAsync(newPatientModel);
-            return newPatientModel;
+                case null:
+                {
+                    PatientModel lastIdDocument = collection.Find(patient => true).SortByDescending(e => e.Uid).ToList().FirstOrDefault();
+                    PatientModel newPatientModel = new PatientModel()
+                    {
+                        _Id = ObjectId.GenerateNewId(),
+                        Uid = lastIdDocument.Uid == null ? 0 : lastIdDocument.Uid + 1 ,
+                        Name = newPatient.Name,
+                        Surname = newPatient.Surname,
+                        Email = newPatient.Email,
+                        PhoneNumber = newPatient.PhoneNumber,
+                        Password = AesOperation.EncryptString(Secrets.SymmetricKeyOAuth, newPatient.Password),
+                        UserType = "Patient",
+                        Sex = newPatient.Sex,
+                        Weight = newPatient.Weight,
+                        Height = newPatient.Height,
+                        Pregnancy = newPatient.Pregnancy,
+                        ThinnestWaist = newPatient.ThinnestWaist,
+                        TightestNeck = newPatient.TightestNeck,
+                        Age = newPatient.Age,
+                    };
+                
+                    collection.InsertOneAsync(newPatientModel);
+                    break;
+                }
+                default:
+                    return "Email or Phone Number Exist";
+            }
+            
+            return "Done";
 
         }
         [HttpPost("CreateDietician")]
-        public DieticianModel AddNewDietician(DieticianModel newDietician)
+        public string AddNewDietician(DieticianModel newDietician)
         {
             var client = new MongoClient(Secrets.DatabaseKey);
             var database = client.GetDatabase("DietDB");
             var collection = database.GetCollection<DieticianModel>("DieticianCollection");
-            collection.InsertOneAsync(newDietician);
-            return newDietician;
-
+            DieticianModel lastIdDocument = collection.Find(patient => true).SortByDescending(e => e.Uid).ToList().FirstOrDefault();
+            var checkExistance =
+                collection.Find(dietician => dietician.Email == newDietician.Email || dietician.PhoneNumber == newDietician.PhoneNumber).ToList().FirstOrDefault();
+            switch (checkExistance)
+            {
+                case null:
+                {
+                    DieticianModel newDieticianModel = new DieticianModel()
+                    {
+                        _Id = ObjectId.GenerateNewId(),
+                        Uid = lastIdDocument.Uid == null ? 0 : lastIdDocument.Uid + 1,
+                        Name = newDietician.Name,
+                        Surname = newDietician.Surname,
+                        Email = newDietician.Email,
+                        PhoneNumber = newDietician.PhoneNumber,
+                        Password = AesOperation.EncryptString(Secrets.SymmetricKeyOAuth, newDietician.Password),
+                        UserType = "Dietician",
+                        Score = 0,
+                        DetailInformation = newDietician.DetailInformation,
+                        GraduatedSchool = newDietician.GraduatedSchool,
+                        Experiences = newDietician.Experiences,
+                        PhotoUrl = newDietician.PhotoUrl,
+                        AvailableDays = newDietician.AvailableDays,
+                        Comments = newDietician.Comments,
+                    };
+                    collection.InsertOneAsync(newDietician);
+                    return "User created";
+                }
+                default:
+                    return "Email or Phone Number Exist";
+            }
+            
         }
         [HttpPost("LoginPatient")]
         public PatientModel LoginPatient(IBaseUser userInformation)
