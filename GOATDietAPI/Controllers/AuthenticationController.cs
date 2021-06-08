@@ -30,9 +30,19 @@ namespace GOATDietAPI.Controllers
                 CreationTime = DateTime.Now,
             };
             
+        } 
+        [HttpGet("PhoneAuthentication/isAuth/{uid}")]
+        public static bool GetAuthStatusPatient(int uid)
+        {
+            var database = Secrets.client.GetDatabase("DietDB");
+            var collection = database.GetCollection<PatientModel>("PatientCollection");
+            var document = collection.Find(patient => patient.Uid == uid).Limit(1).ToList().FirstOrDefault();
+            return document.PhoneAuthenticated;
+
         }
+        
         [HttpPost("PhoneAuthentication/Confirmation/{uid}")]
-        public Boolean SetAuthPhone(int uid)
+        public static Boolean SetAuthPhone(int uid)
         {
             var client = new MongoClient(Secrets.DatabaseKey);
             var database = client.GetDatabase("DietDB");
@@ -66,7 +76,7 @@ namespace GOATDietAPI.Controllers
                     PatientModel newPatientModel = new PatientModel()
                     {
                         _Id = ObjectId.GenerateNewId(),
-                        Uid = lastIdDocument.Uid == null ? 0 : lastIdDocument.Uid + 1 ,
+                        Uid = lastIdDocument == null ? 0 : lastIdDocument.Uid + 1 ,
                         Name = newPatient.Name,
                         Surname = newPatient.Surname,
                         Email = newPatient.Email,
@@ -108,7 +118,7 @@ namespace GOATDietAPI.Controllers
                     DieticianModel newDieticianModel = new DieticianModel()
                     {
                         _Id = ObjectId.GenerateNewId(),
-                        Uid = lastIdDocument.Uid == null ? 0 : lastIdDocument.Uid + 1,
+                        Uid = lastIdDocument == null ? 0 : lastIdDocument.Uid + 1,
                         Name = newDietician.Name,
                         Surname = newDietician.Surname,
                         Email = newDietician.Email,
@@ -123,7 +133,7 @@ namespace GOATDietAPI.Controllers
                         AvailableDays = newDietician.AvailableDays,
                         Comments = newDietician.Comments,
                     };
-                    collection.InsertOneAsync(newDietician);
+                    collection.InsertOneAsync(newDieticianModel);
                     return "User created";
                 }
                 default:

@@ -14,6 +14,15 @@ namespace GOATDietAPI.Controllers
     [Route("[controller]")]
     public class AppointmentController : Controller
     {
+        [HttpGet("{appointmentId}")]
+        public AppointmentModel GetSingleAppointment(int appointmentId)
+        {
+            var client = new MongoClient(Secrets.DatabaseKey);
+            var database = client.GetDatabase("DietDB");
+            var collection = database.GetCollection<AppointmentModel>("AppointmentCollection");
+            var document = collection.Find(appointment =>appointment.AppointmentId == appointmentId).Limit(1).ToList().FirstOrDefault();
+            return document;
+        }
         [HttpGet("patient/{uid}")]
         public IEnumerable<AppointmentModel> GetAllAppointmentsPatient(int uid)
         {
@@ -22,9 +31,9 @@ namespace GOATDietAPI.Controllers
             var collection = database.GetCollection<AppointmentModel>("AppointmentCollection");
             var document = collection.Find(appointment =>appointment.PatientUid == uid).ToList();
             return document;
-        }
+        } 
         [HttpGet("dietician/{uid}")]
-        public IEnumerable<AppointmentModel> GetSinglePatientAppointment(int uid)
+        public IEnumerable<AppointmentModel> GetAllDieticianAppointment(int uid)
         {
             var client = new MongoClient(Secrets.DatabaseKey);
             var database = client.GetDatabase("DietDB");
@@ -38,6 +47,9 @@ namespace GOATDietAPI.Controllers
             var client = new MongoClient(Secrets.DatabaseKey);
             var database = client.GetDatabase("DietDB");
             var collection = database.GetCollection<AppointmentModel>("AppointmentCollection");
+            // if (newAppointment.PatientUid != null){
+            //    var authCheck = AuthenticationController.GetAuthStatusPatient(newAppointment.PatientUid.Value);
+            // }
             AppointmentModel lastIdDocument = collection.Find(patient => true).SortByDescending(e => e.AppointmentId).ToList().FirstOrDefault();
             var newAppointmentAppointmentId = lastIdDocument == null ? 0 : lastIdDocument.AppointmentId;
             newAppointment.AppointmentId = newAppointmentAppointmentId;
